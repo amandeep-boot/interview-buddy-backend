@@ -1,0 +1,10 @@
+
+uvicorn[standard]
+fastapi 
+pydantic
+groq
+python-dotenv
+sqlalchemy
+psycopg2-binary
+python-multipart
+
