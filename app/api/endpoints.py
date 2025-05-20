@@ -6,7 +6,7 @@ from ..database.dependencies import get_db
 from groq import Groq
 import os
 from dotenv import load_dotenv
-
+from pathlib import Path
 
 # Load environment variables
 load_dotenv()
@@ -17,6 +17,9 @@ if not api_key:
 # Initialize Groq client
 client = Groq(api_key=api_key)
 
+SYSTEM_PROMPT_PATH = Path(__file__).parent.parent / "templates" / "chat-prompt.txt"
+with open(SYSTEM_PROMPT_PATH, "r", encoding="utf-8") as f:
+    SYSTEM_PROMPT = f.read()
 # Initialize FastAPI app
 app = FastAPI()
 
@@ -31,7 +34,7 @@ def root():
 
 @app.post("/chat")
 async def chat(data: Schema, db: Session = Depends(get_db)):
-    system_prompt = "You are a helpful assistant. Answer the user's questions in detail and provide relevant information."
+    system_prompt = SYSTEM_PROMPT
 
     # Fetch previous messages for the user from the database
     previous_messages = (
@@ -40,9 +43,6 @@ async def chat(data: Schema, db: Session = Depends(get_db)):
         .order_by(Message.id.asc())
         .all()
     )
-
-    if previous_messages:
-        print(f"Previous messages for user {data.user_id}: {[msg.content for msg in previous_messages]}")
     # Prepare messages for Groq API
     messages = [{"role": "system", "content": system_prompt}]
     for msg in previous_messages:
