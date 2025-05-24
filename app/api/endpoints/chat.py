@@ -1,12 +1,15 @@
 from fastapi import FastAPI, HTTPException ,Depends
 from pydantic import BaseModel 
 from sqlalchemy.orm import Session
-from ..database.models import Message
-from ..database.dependencies import get_db 
+from ...database.models import Message
+from ...database.dependencies import get_db 
 from groq import Groq
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+from fastapi import File, UploadFile
+import fitz  # PyMuPDF
+
 
 # Load environment variables
 load_dotenv()
@@ -17,7 +20,7 @@ if not api_key:
 # Initialize Groq client
 client = Groq(api_key=api_key)
 
-SYSTEM_PROMPT_PATH = Path(__file__).parent.parent / "templates" / "chat-prompt.txt"
+SYSTEM_PROMPT_PATH = Path(__file__).parent.parent.parent / "templates" / "chat-prompt.txt"
 with open(SYSTEM_PROMPT_PATH, "r", encoding="utf-8") as f:
     SYSTEM_PROMPT = f.read()
 # Initialize FastAPI app

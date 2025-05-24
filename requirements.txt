@@ -6,5 +6,8 @@ groq
 python-dotenv
 sqlalchemy
 psycopg2-binary
+pymupdf
 python-multipart
-
+passlib[bcrypt]
+pydantic[email]
+python-jose
