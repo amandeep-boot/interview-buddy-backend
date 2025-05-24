@@ -1,11 +1,11 @@
 from fastapi import APIRouter , HTTPException , Depends
+from fastapi.security import OAuth2PasswordRequestForm
+from ...utils.token import create_access_token
+from ...database.dependencies import get_db
 from pydantic import BaseModel , EmailStr 
-from sqlalchemy.orm import Session 
 from passlib.context import CryptContext
 from ...database.models import User 
-from ...database.dependencies import get_db
-from ...utils.token import create_access_token
-from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session 
 
 
 app = APIRouter()
@@ -40,11 +40,13 @@ class LoginRequest(BaseModel):
     password :str 
 
 @app.post("/auth/Login")
-async def login(data:LoginRequest,db:Session=Depends(get_db)):
-    user = db.query(User).filter(User.email == data.email).first()
-    if not user :
-        raise HTTPException(status_code= 400 , detail= "Invalid email or password.")
-    if not pwd_context.verify(data.password , user.hashed_password):
-        raise HTTPException(status_code= 400 , detail= "Invalid email or password.")
-    access_token = create_access_token(data={"user_id": str(user.id)})
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == form_data.username).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid email or password.")
+
+    if not pwd_context.verify(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Invalid email or password.")
+
+    access_token = create_access_token(data={"user_id": user.id})
     return {"access_token": access_token, "token_type": "bearer"}

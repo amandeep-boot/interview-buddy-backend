@@ -10,6 +10,13 @@ class User(Base):
 class Message(Base):
     __tablename__ = "chat_history" 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String) 
+    user_id = Column(Integer, index=True ) 
     role = Column(String)
     content = Column(String)
+
+class UserData(Base):
+    __tablename__ = "user_data"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    resume_text = Column(String)
+    job_description = Column(String)
