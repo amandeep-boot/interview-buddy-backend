@@ -31,6 +31,11 @@ app = FastAPI()
 class Schema(BaseModel):
     query: str
 
+class JDText(BaseModel):
+    job_description: str
+
+
+
 @app.get("/")
 def root():
     return {"message": "This is a chat assistant"}
@@ -114,19 +119,15 @@ async def upload_resume(
         user_data.resume_text = resume_text
     db.commit()
     return {"message": "Resume uploaded successfully."}
+
+
 @app.post("/chat/upload/jd")
 async def upload_job_description(
-    job_description: UploadFile = File(...),
+    jd: JDText,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user)
 ):
-    if job_description.content_type not in ["application/pdf", "text/plain"]:
-        raise HTTPException(status_code=400, detail="Invalid job description file type. Only PDF and text files are allowed.")
-    if job_description.content_type == "application/pdf":
-        pdf_document = fitz.open(stream=await job_description.read(), filetype="pdf")
-        job_description_text = "\n".join(page.get_text() for page in pdf_document)
-    else:
-        job_description_text = (await job_description.read()).decode("utf-8")
+    job_description_text = jd.job_description
     user_data = db.query(UserData).filter(UserData.user_id == user_id).first()
     if not user_data:
         user_data = UserData(user_id=user_id, job_description=job_description_text)
