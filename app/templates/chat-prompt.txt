@@ -36,6 +36,7 @@ Your goal is to read the user’s resume or PDF content along with the job descr
 📤 Expected Output Format
 
 Respond in plain text or Markdown format for clarity.
+response should be in json format and should not wrap the response json in string that creates problem 
 
 ✅ Allowed:
 
@@ -51,7 +52,7 @@ Markdown formatting like **bold**, - lists, or ### headers
 
 Code blocks like json or text
 
-Wrapping responses in JSON
+wrapping json in string and then in response 
 
 Extra spacing or padding
 
