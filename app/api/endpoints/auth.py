@@ -6,10 +6,26 @@ from pydantic import BaseModel , EmailStr
 from passlib.context import CryptContext
 from ...database.models import User 
 from sqlalchemy.orm import Session 
+import hashlib
+import base64
 
 
 app = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"],deprecated = "auto")
+
+
+def hash_password(password: str) -> str:
+    pw_bytes = password.encode("utf-8")
+    sha256_hash = hashlib.sha256(pw_bytes).digest()
+    encoded = base64.b64encode(sha256_hash)
+    return pwd_context.hash(encoded)
+
+
+def verify_password(plain: str, hashed: str) -> bool:
+    pw_bytes = plain.encode("utf-8")
+    sha256_hash = hashlib.sha256(pw_bytes).digest()
+    encoded = base64.b64encode(sha256_hash)
+    return pwd_context.verify(encoded, hashed)
 
 class SignUpSchema(BaseModel):
     email:EmailStr
@@ -25,8 +41,8 @@ async def signup(data : SignUpSchema , db:Session= Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code= 400 , detail= "Email already registered." )
     
-    # hash password 
-    hashed_password = pwd_context.hash(data.password) 
+    # hash password using SHA-256 + bcrypt
+    hashed_password = hash_password(data.password)
 
     # Createeee and store new user 
 
@@ -48,7 +64,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     if not user:
         raise HTTPException(status_code=400, detail="Invalid email or password.")
 
-    if not pwd_context.verify(form_data.password, user.hashed_password):
+    if not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Invalid email or password.")
 
     access_token = create_access_token(data={"user_id": user.id})
